@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>2828 vs 美股 分段吸納模擬器</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    canvas {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 分段吸納模擬器：2828 vs 美股</h1>
+    <label>
+      💰 每月投資金額（HKD）：
+      <input type="number" id="monthly" value="1000">
+    </label>
+    <label>
+      📆 分段吸納期數（月數）：
+      <input type="number" id="months" value="12">
+    </label>
+    <label>
+      📈 年回報率（%）：<br>
+      <small>恒指（2828）建議填 6%，美股（S&P 500）建議填 9%</small>
+      <input type="number" id="rateHK" value="6">
+    </label>
+    <label>
+      🌍 年回報率（%）：美股（S&P 500）
+      <input type="number" id="rateUS" value="9">
+    </label>
+
+    <button onclick="calculate()" style="margin-top:15px;padding:10px 20px;">模擬計算</button>
+
+    <div id="result" style="margin-top:20px; font-weight: bold;"></div>
+    <canvas id="chart" width="700" height="400"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function calculate() {
+      const monthly = parseFloat(document.getElementById('monthly').value);
+      const months = parseInt(document.getElementById('months').value);
+      const rateHK = parseFloat(document.getElementById('rateHK').value) / 100;
+      const rateUS = parseFloat(document.getElementById('rateUS').value) / 100;
+
+      let totalHK = 0;
+      let totalUS = 0;
+      let dataHK = [];
+      let dataUS = [];
+      let labels = [];
+
+      for (let i = 1; i <= months; i++) {
+        const monthsLeft = months - i + 1;
+
+        const futureValueHK = monthly * Math.pow(1 + rateHK / 12, monthsLeft);
+        const futureValueUS = monthly * Math.pow(1 + rateUS / 12, monthsLeft);
+
+        totalHK += futureValueHK;
+        totalUS += futureValueUS;
+
+        labels.push(`月 ${i}`);
+        dataHK.push(parseFloat(totalHK.toFixed(2)));
+        dataUS.push(parseFloat(totalUS.toFixed(2)));
+      }
+
+      document.getElementById('result').innerHTML = `
+        ✅ 投資總期數：${months} 個月<br>
+        ✅ 投入資金總額：HK$${monthly * months}<br><br>
+        📉 預計 2828 回報：<span style="color:#2980b9">HK$${totalHK.toFixed(2)}</span><br>
+        📈 預計美股回報：<span style="color:#27ae60">HK$${totalUS.toFixed(2)}</span>
+      `;
+
+      const ctx = document.getElementById('chart').getContext('2d');
+      if (window.myChart) window.myChart.destroy();
+      window.myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '2828（恒指）資產累積',
+              data: dataHK,
+              borderColor: '#3498db',
+              fill: false
+            },
+            {
+              label: 'S&P 500（美股）資產累積',
+              data: dataUS,
+              borderColor: '#2ecc71',
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
